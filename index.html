@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#141416" />
+  <title>Grupo Fagundes Miari • Gestão de Fazendas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <section id="loginView" class="login-shell">
+    <div class="login-art">
+      <div class="brand-pill">Grupo Fagundes Miari</div>
+      <svg class="contours" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g><path d="M-60 70 C 180 42, 340 98, 560 56 S 900 98, 1260 61"/><path d="M-60 116 C 180 78, 340 154, 560 97 S 900 154, 1260 103"/><path d="M-60 162 C 180 114, 340 210, 560 138 S 900 210, 1260 146"/><path d="M-60 208 C 180 150, 340 266, 560 179 S 900 266, 1260 189"/><path d="M-60 254 C 180 226, 340 282, 560 240 S 900 282, 1260 245"/><path d="M-60 300 C 180 262, 340 338, 560 281 S 900 338, 1260 287"/><path d="M-60 346 C 180 298, 340 394, 560 322 S 900 394, 1260 330"/><path d="M-60 392 C 180 334, 340 450, 560 363 S 900 450, 1260 373"/></g><g><path d="M-60 438 C 180 410, 340 466, 560 424 S 900 466, 1260 429"/><path class="hl" d="M-60 484 C 180 446, 340 522, 560 465 S 900 522, 1260 471"/><path d="M-60 530 C 180 482, 340 578, 560 506 S 900 578, 1260 514"/><path d="M-60 576 C 180 518, 340 634, 560 547 S 900 634, 1260 557"/><path d="M-60 622 C 180 594, 340 650, 560 608 S 900 650, 1260 613"/><path d="M-60 668 C 180 630, 340 706, 560 649 S 900 706, 1260 655"/><path d="M-60 714 C 180 666, 340 762, 560 690 S 900 762, 1260 698"/><path d="M-60 760 C 180 702, 340 818, 560 731 S 900 818, 1260 741"/></g></svg>
+      <div class="login-copy">
+        <span class="eyebrow">GESTÃO RURAL</span>
+        <h1>Controle a operação<br>sem perder o campo de vista.</h1>
+        <p>Grupo Fagundes Miari: fazendas, equipe, estoque, financeiro, notas, pagamentos e operação de campo em um único sistema.</p>
+      </div>
+      <div class="harvest-note"><span>Gestão</span><strong>Café e gado no mesmo painel: lançamentos, estoque e pesagens.</strong></div>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="logo-mark">GFM</div>
+        <div class="auth-switch" data-mode="login">
+          <button id="showLoginBtn" class="switch-btn active" type="button">Entrar</button>
+          <button id="showRegisterBtn" class="switch-btn" type="button">Registrar</button>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <span class="eyebrow dark">ACESSO RESTRITO</span>
+          <h2>Bem-vindo</h2>
+          <p class="muted">Entre com seu usuário para acessar o sistema.</p>
+          <label>Usuário<input id="loginUser" autocomplete="username" required /></label>
+          <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" required /></label>
+          <button class="btn primary full" type="submit">Entrar no sistema</button>
+          <p class="security-note">Os cadastros e comprovantes deste protótipo ficam salvos apenas no navegador local.</p>
+        </form>
+
+        <form id="registerForm" class="auth-form hidden">
+          <span class="eyebrow dark">SOLICITAÇÃO DE CADASTRO</span>
+          <h2>Registrar</h2>
+          <p class="muted">Envie seu pedido de acesso. O CEO poderá aprovar dentro do sistema.</p>
+          <div class="form-grid compact-grid">
+            <label>Nome<input name="name" required></label>
+            <label>Função (opcional)<input name="function"></label>
+            <label>Chave PIX (opcional)<input name="pixKey"></label>
+            <label>Perfil desejado<select name="role"><option value="contribuinte">Contribuinte</option><option value="adm">Administrador</option></select></label>
+            <label>Usuário<input name="username" required></label>
+            <label>Senha<input name="password" type="password" minlength="6" required></label>
+          </div>
+          <button class="btn primary full" type="submit">Enviar solicitação</button>
+          <p class="security-note">Após o envio, o cadastro ficará pendente até o CEO aceitar.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-mark small">GFM</div>
+        <div><strong>Grupo Fagundes Miari</strong><span>Gestão de Fazendas</span></div>
+      </div>
+      <nav id="navMenu"></nav>
+      <div class="sidebar-footer">
+        <div class="user-chip"><div id="userAvatar" class="avatar">U</div><div><strong id="userName">Usuário</strong><span id="userRole">Perfil</span></div></div>
+        <button id="logoutBtn" class="btn ghost full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <span id="pageEyebrow" class="eyebrow dark">PAINEL</span>
+          <h1 id="pageTitle">Visão geral</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="farm-switcher"><span>Fazenda ativa</span><select id="farmSelect"></select></label>
+          <button id="logoutTop" class="btn" type="button" aria-label="Sair"></button>
+          <div id="quoteMini" class="quote-mini hidden"><span><i class="live-dot"></i>Café C • saca 60 kg</span><strong id="quoteMiniValue">—</strong></div>
+        </div>
+      </header>
+      <div id="pageContent" class="page-content"></div>
+    </main>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
