@@ -1,8 +1,8 @@
 {
   "name": "fazenda-admin-moderno",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "private": true,
-  "description": "Sistema de gestão para fazendas de café e gado",
+  "description": "Gestão rural Grupo Fagundes Miari com módulos separados de Café e Gado",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

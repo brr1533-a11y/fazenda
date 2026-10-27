@@ -20,14 +20,13 @@
       <div class="login-copy">
         <span class="eyebrow">GESTÃO RURAL</span>
         <h1>Controle a operação<br>sem perder o campo de vista.</h1>
-        <p>Grupo Fagundes Miari: fazendas, equipe, estoque, financeiro, notas, pagamentos e operação de campo em um único sistema.</p>
+        <p>Gestão<br><strong>Café e gado</strong></p>
       </div>
       <div class="harvest-note"><span>Gestão</span><strong>Café e gado no mesmo painel: lançamentos, estoque e pesagens.</strong></div>
     </div>
 
     <div class="login-panel">
       <div class="login-card">
-        <div class="logo-mark">GFM</div>
         <div class="auth-switch" data-mode="login">
           <button id="showLoginBtn" class="switch-btn active" type="button">Entrar</button>
           <button id="showRegisterBtn" class="switch-btn" type="button">Registrar</button>
@@ -49,9 +48,9 @@
           <p class="muted">Envie seu pedido de acesso. O CEO poderá aprovar dentro do sistema.</p>
           <div class="form-grid compact-grid">
             <label>Nome<input name="name" required></label>
-            <label>Função<select name="function" required><option value="">Selecione</option><option value="Tratorista">Tratorista</option><option value="Campo">Campo</option></select></label>
+            <label id="registerFunctionWrap">Função<select name="function" id="registerFunction" required><option value="">Selecione</option><option value="Tratorista">Tratorista</option><option value="Campo">Campo</option></select></label>
             <label>Chave PIX (opcional)<input name="pixKey"></label>
-            <label>Perfil desejado<select name="role"><option value="contribuinte">Contribuinte</option><option value="adm">Administrador</option></select></label>
+            <label>Perfil desejado<select name="role" id="registerRole"><option value="contribuinte">Contribuinte</option><option value="adm">Administrador</option></select></label>
             <label>Usuário<input name="username" required></label>
             <label>Senha<input name="password" type="password" minlength="6" required></label>
           </div>

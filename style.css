@@ -193,3 +193,80 @@ tbody tr{transition:background .2s}tbody tr:hover{background:#fafafa}tr:last-chi
   .ceo-donut-stat div{align-items:flex-start;flex-direction:column;gap:3px}
   .nav-btn{min-width:120px}
 }
+
+/* Cards clicáveis do balanço - preserva o visual existente */
+.finance-kpi-link{
+  width:100%;
+  text-align:left;
+  font:inherit;
+  color:inherit;
+  cursor:pointer;
+  appearance:none;
+  transition:background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.finance-kpi-link:hover{
+  background:var(--sub)!important;
+  transform:translateY(-1px);
+}
+.finance-kpi-link:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:-3px;
+}
+.finance-filter-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+.finance-filter-summary{margin-bottom:8px}
+@media(max-width:650px){
+  .finance-filter-head{align-items:flex-start;flex-direction:column}
+}
+
+
+/* Alternador de operação do CEO: fica imediatamente abaixo de Perfil. */
+.mode-switch-btn{
+  margin-top:10px;
+  border-top:1px solid rgba(255,255,255,.08)!important;
+  padding-top:14px!important;
+  color:#fff!important;
+  font-weight:600!important;
+}
+.mode-switch-btn::after{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  margin-left:auto;
+  background:#5ec496;
+  box-shadow:0 0 0 4px rgba(94,196,150,.12);
+}
+.mode-switch-btn:hover{background:rgba(94,196,150,.10)!important}
+@media(max-width:720px){.mode-switch-btn{display:none!important}}
+
+
+/* Mercado */
+.market-livebar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--paper); font-size:12px; color:var(--muted); }
+.market-live-dot { width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 5px rgba(59,130,98,.12); }
+.market-ticker { overflow:hidden; border:1px solid var(--line); border-radius:14px; margin-top:12px; background:var(--paper); }
+.market-ticker-track { display:flex; width:max-content; gap:38px; padding:11px 18px; animation:marketTicker 28s linear infinite; font-size:12px; font-weight:700; white-space:nowrap; }
+.market-ticker:hover .market-ticker-track { animation-play-state:paused; }
+@keyframes marketTicker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+.market-price { font-family:"Geist Mono", ui-monospace, monospace; font-size:34px; font-weight:650; letter-spacing:-.04em; margin:14px 0 10px; }
+.market-price small { font-family:Inter, system-ui, sans-serif; font-size:12px; color:var(--muted); font-weight:700; letter-spacing:0; }
+.market-var { display:inline-flex; padding:5px 8px; border-radius:999px; font-size:11px; font-weight:800; }
+.market-var.up { color:var(--accent); background:rgba(59,130,98,.10); }
+.market-var.down { color:var(--danger); background:rgba(184,72,69,.10); }
+.market-var.neutral { color:var(--muted); background:var(--soft); }
+.market-highlight { border-color:rgba(59,130,98,.26); background:linear-gradient(180deg, var(--paper), rgba(59,130,98,.035)); }
+.market-highlight.cattle { border-color:rgba(183,139,75,.28); background:linear-gradient(180deg, var(--paper), rgba(183,139,75,.045)); }
+.market-conversion { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:12px; }
+.market-conversion span { color:var(--muted); }
+.market-conversion strong { font-family:"Geist Mono", ui-monospace, monospace; font-size:15px; }
+.market-source { font-size:11px; color:var(--muted); margin-top:14px; }
+.market-warning { margin-top:22px; background:var(--soft); box-shadow:none; }
+.market-warning p { color:var(--muted); font-size:12px; line-height:1.55; }
+.market-loader { display:inline-block; width:22px; height:22px; border:2px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:marketSpin .8s linear infinite; }
+@keyframes marketSpin { to { transform:rotate(360deg); } }
+@media (max-width: 650px) { .market-price { font-size:28px; } .market-ticker-track { animation-duration:22s; } }
