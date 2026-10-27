@@ -35,3 +35,10 @@ Abra `http://localhost:3000`.
 ## Limpeza de nomes internos
 - Removidas referências antigas de nomenclatura do código.
 - Pacote e chaves internas agora usam nomenclatura de Fazenda.
+
+
+## v12
+- Função obrigatória para contribuinte: Tratorista ou Campo.
+- Talhões gerenciados pelo CEO por fazenda de café.
+- Contribuinte seleciona um ou mais talhões no trabalho do dia.
+- Log de equipamentos registra função e talhões.

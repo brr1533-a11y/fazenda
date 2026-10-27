@@ -46,6 +46,8 @@ function newFarm(name, type = "coffee") {
     finances: [],
     notes: [],
     assignments: [],
+    equipmentLogs: [],
+    talhoes: [],
     cattle: { lots: [], weighings: [] }
   };
 }
@@ -58,22 +60,29 @@ function defaultData() {
     { id: uid(), item: "Adubo 20-05-20", category: "Adubos", quantity: 40, unit: "sacos", min: 15, unitCost: 165 },
     { id: uid(), item: "Diesel S10", category: "Combustível", quantity: 700, unit: "L", min: 250, unitCost: 6.25 }
   );
+  const farms = [f1, newFarm("Fazenda Boa Vista", "coffee"), newFarm("Fazenda Monte Verde", "coffee"), newFarm("Fazenda São Bento", "coffee")];
   return {
-    version: 6,
+    version: 8,
     users: [
-      { id: uid(), username: "jacquesMiari", password: "05091722", name: "Jacques Miari", role: "ceo", active: true, function: "CEO", pixKey: "" },
-      { id: uid(), username: "adm", password: "ADM123", name: "Administrador", role: "adm", active: true, function: "Administração", pixKey: "" },
-      { id: uid(), username: "campo", password: "CAFE123", name: "João Campo", role: "contribuinte", active: true, function: "Campo", pixKey: "" }
+      { id: uid(), username: "jacquesMiari", password: "05091722", name: "Jacques Miari", role: "ceo", active: true, function: "CEO", pixKey: "", allowedFarmId: "" },
+      { id: uid(), username: "adm", password: "ADM123", name: "Administrador", role: "adm", active: true, function: "Administração", pixKey: "", allowedFarmId: "" },
+      { id: uid(), username: "campo", password: "CAFE123", name: "João Campo", role: "contribuinte", active: true, function: "Campo", pixKey: "", allowedFarmId: farms[0].id }
     ],
     pendingRegistrations: [],
-    farms: [f1, newFarm("Fazenda Boa Vista", "coffee"), newFarm("Fazenda Monte Verde", "coffee"), newFarm("Fazenda São Bento", "coffee")],
+    farms,
     receipts: []
   };
 }
 
+
+function dataUserFunctionFallback(users, username) {
+  const u = (users || []).find(x => x.username === username);
+  return u?.function || "Campo";
+}
+
 function migrateData(raw) {
   const d = raw && typeof raw === "object" ? raw : defaultData();
-  d.version = 6;
+  d.version = 8;
   d.users = Array.isArray(d.users) ? d.users : [];
   d.pendingRegistrations = Array.isArray(d.pendingRegistrations) ? d.pendingRegistrations : [];
   d.farms = Array.isArray(d.farms) && d.farms.length ? d.farms : defaultData().farms;
@@ -97,12 +106,19 @@ function migrateData(raw) {
     u.active = u.active !== false;
     u.function = u.function || "";
     u.pixKey = u.pixKey || "";
+    if (u.role === "contribuinte") {
+      u.function = ["Tratorista", "Campo"].includes(u.function) ? u.function : "Campo";
+      const validFarm = d.farms.some(f => f.id === u.allowedFarmId);
+      u.allowedFarmId = validFarm ? u.allowedFarmId : (d.farms[0]?.id || "");
+    } else {
+      u.allowedFarmId = "";
+    }
   });
 
   d.pendingRegistrations.forEach(r => {
     r.id = r.id || uid();
     r.role = ["adm", "contribuinte"].includes(r.role) ? r.role : "contribuinte";
-    r.function = r.function || "";
+    r.function = ["Tratorista", "Campo"].includes(r.function) ? r.function : "Campo";
     r.pixKey = r.pixKey || "";
   });
 
@@ -117,6 +133,19 @@ function migrateData(raw) {
     f.finances = Array.isArray(f.finances) ? f.finances : [];
     f.notes = Array.isArray(f.notes) ? f.notes : [];
     f.assignments = Array.isArray(f.assignments) ? f.assignments : [];
+    f.talhoes = Array.isArray(f.talhoes) ? f.talhoes : [];
+    f.talhoes.forEach(t => { t.id = t.id || uid(); t.name = t.name || "Talhão"; });
+    f.equipmentLogs = Array.isArray(f.equipmentLogs) ? f.equipmentLogs : f.assignments.map(a => ({
+      id: uid(), date: a.date, loggedAt: a.loggedAt || `${a.date || todayISO()}T12:00:00`,
+      user: a.user, userName: a.userName, activity: a.activity, tractorId: a.tractorId, tractorName: a.tractorName,
+      implementId: a.implementId, implementName: a.implementName,
+      talhaoIds: Array.isArray(a.talhaoIds) ? a.talhaoIds : [], talhaoNames: Array.isArray(a.talhaoNames) ? a.talhaoNames : []
+    }));
+    f.equipmentLogs.forEach(log => {
+      log.talhaoIds = Array.isArray(log.talhaoIds) ? log.talhaoIds : [];
+      log.talhaoNames = Array.isArray(log.talhaoNames) ? log.talhaoNames : [];
+      log.userFunction = log.userFunction || dataUserFunctionFallback(d.users, log.user);
+    });
     f.cattle = f.cattle || {};
     f.cattle.lots = Array.isArray(f.cattle.lots) ? f.cattle.lots : [];
     f.cattle.weighings = Array.isArray(f.cattle.weighings) ? f.cattle.weighings : [];
@@ -303,19 +332,16 @@ function createPendingRegistration(values) {
   const name = String(values.name || "").trim();
   const username = String(values.username || "").trim();
   const password = String(values.password || "");
+  const role = values.role === "adm" ? "adm" : "contribuinte";
+  const workerFunction = String(values.function || "").trim();
   if (!name) return toast("Informe o nome.");
+  if (!["Tratorista", "Campo"].includes(workerFunction)) return toast("Selecione a função: Tratorista ou Campo.");
   if (!/^[a-zA-Z0-9._-]{3,30}$/.test(username)) return toast("Usuário inválido. Use 3 a 30 caracteres.");
   if (password.length < 6) return toast("A senha precisa ter pelo menos 6 caracteres.");
   if (data.users.some(u => String(u.username).toLowerCase() === username.toLowerCase()) || data.pendingRegistrations.some(u => String(u.username).toLowerCase() === username.toLowerCase())) return toast("Esse usuário já existe ou está pendente.");
   data.pendingRegistrations.push({
-    id: uid(),
-    name,
-    username,
-    password,
-    role: values.role === "adm" ? "adm" : "contribuinte",
-    function: String(values.function || "").trim(),
-    pixKey: String(values.pixKey || "").trim(),
-    createdAt: new Date().toISOString()
+    id: uid(), name, username, password, role, function: workerFunction,
+    pixKey: String(values.pixKey || "").trim(), createdAt: new Date().toISOString()
   });
   saveData();
   toast("Solicitação enviada para aprovação do CEO.");
@@ -327,31 +353,29 @@ function createUser(values, after) {
   const name = String(values.name || "").trim();
   const username = String(values.username || "").trim();
   const password = String(values.password || "");
+  const role = values.role || "contribuinte";
+  let workerFunction = String(values.function || "").trim();
   if (!name) return toast("Informe o nome.");
+  if (role === "contribuinte" && !["Tratorista", "Campo"].includes(workerFunction)) return toast("Selecione a função: Tratorista ou Campo.");
+  if (role !== "contribuinte" && !workerFunction) workerFunction = role === "ceo" ? "CEO" : "Administração";
   if (!/^[a-zA-Z0-9._-]{3,30}$/.test(username)) return toast("Usuário inválido. Use 3 a 30 caracteres.");
   if (password.length < 6) return toast("A senha precisa ter pelo menos 6 caracteres.");
   if (data.users.some(u => String(u.username).toLowerCase() === username.toLowerCase())) return toast("Esse usuário já existe.");
   data.users.push({
-    id: uid(),
-    name,
-    username,
-    password,
-    role: values.role || "contribuinte",
-    active: true,
-    function: String(values.function || "").trim(),
+    id: uid(), name, username, password, role, active: true, function: workerFunction,
     pixKey: String(values.pixKey || "").trim(),
-    createdAt: new Date().toISOString(),
-    createdBy: currentUser?.username || "sistema"
+    allowedFarmId: role === "contribuinte" ? (String(values.allowedFarmId || "") || data.farms[0]?.id || "") : "",
+    createdAt: new Date().toISOString(), createdBy: currentUser?.username || "sistema"
   });
   saveData();
   toast("Usuário criado com sucesso.");
   if (after) after();
 }
 
-function approveRegistration(id) {
+function approveRegistration(id, allowedFarmId = "") {
   const reg = data.pendingRegistrations.find(r => r.id === id);
   if (!reg) return;
-  createUser(reg);
+  createUser({ ...reg, allowedFarmId: reg.role === "contribuinte" ? (allowedFarmId || data.farms[0]?.id || "") : "" });
   data.pendingRegistrations = data.pendingRegistrations.filter(r => r.id !== id);
   saveData();
   toast("Solicitação aprovada.");
@@ -373,12 +397,22 @@ function renderFarmSelector() {
     options.push(`<option value="general-coffee" ${activeFarmId === "general-coffee" ? "selected" : ""}>Geral • Café</option>`);
     options.push(`<option value="general-cattle" ${activeFarmId === "general-cattle" ? "selected" : ""}>Geral • Gado</option>`);
   }
-  options.push(...data.farms.map(f => `<option value="${f.id}" ${f.id === activeFarmId ? "selected" : ""}>${escapeHTML(f.name)} • ${farmTypeLabel(f)}</option>`));
+  const visibleFarms = currentUser?.role === "contribuinte"
+    ? data.farms.filter(f => f.id === currentUser.allowedFarmId)
+    : data.farms;
+  options.push(...visibleFarms.map(f => `<option value="${f.id}" ${f.id === activeFarmId ? "selected" : ""}>${escapeHTML(f.name)} • ${farmTypeLabel(f)}</option>`));
   if (!options.length) return;
-  if (currentUser?.role !== "ceo" && isGeneralView()) activeFarmId = data.farms[0]?.id || "";
-  if (!isGeneralView() && activeFarm() == null) activeFarmId = data.farms[0]?.id || "";
+  if (currentUser?.role === "contribuinte") {
+    const onlyFarm = visibleFarms[0] || data.farms[0];
+    if (onlyFarm) activeFarmId = onlyFarm.id;
+  } else if (currentUser?.role !== "ceo" && isGeneralView()) {
+    activeFarmId = data.farms[0]?.id || "";
+  }
+  if (!isGeneralView() && activeFarm() == null) activeFarmId = visibleFarms[0]?.id || data.farms[0]?.id || "";
   select.innerHTML = options.join("");
   select.value = activeFarmId;
+  select.disabled = currentUser?.role === "contribuinte";
+  select.title = currentUser?.role === "contribuinte" ? "Fazenda definida pelo CEO no perfil" : "Selecionar fazenda";
   select.onchange = () => {
     activeFarmId = select.value;
     saveData();
@@ -396,13 +430,15 @@ function navItems() {
   if (currentUser.role === "ceo") {
     return [
       ["dashboard", "grid", "Visão geral"],
-      ...(cattle ? [["gado", "cattle", isGeneralView() ? "Gado geral" : "Gado"]] : [["equipamentos", "tractor", isGeneralView() ? "Equipamentos gerais" : "Equipamentos"]]),
+      ...(cattle ? [["gado", "cattle", isGeneralView() ? "Gado geral" : "Gado"]] : [["equipamentos", "tractor", isGeneralView() ? "Equipamentos gerais" : "Equipamentos"], ["talhoes", "hash", isGeneralView() ? "Talhões gerais" : "Talhões"]]),
       ["estoque", "box", isGeneralView() ? "Estoque geral" : "Estoque"],
       ["financeiro", "chart", isGeneralView() ? "Balanço geral" : "Balanço financeiro"],
       ["notas", "receipt", isGeneralView() ? "Notas gerais" : "Notas fiscais"],
       ["pagamentos", "wallet", "Pagamentos"],
       ["fazendas", "home", "Fazendas"],
-      ["usuarios", "users", "Usuários"]
+      ["usuarios", "users", "Usuários"],
+      ["log-equipamentos", "receipt", "Log equipamentos"],
+      ["perfil", "users", "Perfil"]
     ];
   }
   if (currentUser.role === "adm") {
@@ -411,12 +447,13 @@ function navItems() {
       ...(cattle ? [["gado", "cattle", "Gado"]] : [["equipamentos", "tractor", "Equipamentos"]]),
       ["estoque", "box", "Estoque"],
       ["lancamentos", "swap", "Lançar entradas/saídas"],
-      ["notas", "receipt", "Notas fiscais"]
+      ["notas", "receipt", "Notas fiscais"],
+      ["perfil", "users", "Perfil"]
     ];
   }
   return selectedType() === "cattle"
-    ? [["gado-campo", "cattle", "Gado"], ["meus-comprovantes", "receipt", "Meus comprovantes"]]
-    : [["meu-dia", "check", "Meu trabalho hoje"], ["equipamentos-campo", "tractor", "Equipamentos disponíveis"], ["meus-comprovantes", "receipt", "Meus comprovantes"]];
+    ? [["gado-campo", "cattle", "Gado"], ["meus-comprovantes", "receipt", "Meus comprovantes"], ["perfil", "users", "Perfil"]]
+    : [["meu-dia", "check", "Meu trabalho hoje"], ["equipamentos-campo", "tractor", "Equipamentos disponíveis"], ["meus-comprovantes", "receipt", "Meus comprovantes"], ["perfil", "users", "Perfil"]];
 }
 
 function renderNav() {
@@ -435,7 +472,16 @@ function openApp() {
   $("#userName").textContent = currentUser.name;
   $("#userRole").textContent = ROLE_NAMES[currentUser.role] || currentUser.role;
   $("#userAvatar").textContent = currentUser.name?.[0]?.toUpperCase() || "U";
-  if (currentUser.role !== "ceo" && isGeneralView()) activeFarmId = data.farms[0]?.id || "";
+  if (currentUser.role === "contribuinte") {
+    const allowed = data.farms.find(f => f.id === currentUser.allowedFarmId) || data.farms[0];
+    if (allowed) {
+      currentUser.allowedFarmId = allowed.id;
+      activeFarmId = allowed.id;
+      saveData();
+    }
+  } else if (currentUser.role !== "ceo" && isGeneralView()) {
+    activeFarmId = data.farms[0]?.id || "";
+  }
   currentPage = currentUser.role === "contribuinte" ? (selectedType() === "cattle" ? "gado-campo" : "meu-dia") : "dashboard";
   renderFarmSelector();
   renderNav();
@@ -450,6 +496,7 @@ function renderPage() {
   const pages = {
     dashboard: renderDashboard,
     equipamentos: renderEquipmentAdmin,
+    talhoes: renderTalhoes,
     estoque: renderStock,
     financeiro: renderFinanceCEO,
     lancamentos: renderFinanceAdmin,
@@ -457,6 +504,8 @@ function renderPage() {
     pagamentos: renderPayments,
     fazendas: renderFarms,
     usuarios: renderUsers,
+    "log-equipamentos": renderEquipmentLog,
+    perfil: renderProfile,
     gado: renderCattle,
     "meu-dia": renderContributorDay,
     "equipamentos-campo": renderContributorEquipment,
@@ -489,8 +538,9 @@ function contributorQuickForm() {
   return `<div class="section-head"><div><h2>Cadastro rápido de contribuinte</h2><p>Crie o colaborador e o login direto da página inicial.</p></div></div>
   <form id="quickContributorForm" class="form-card accent-card"><div class="form-grid">
     <label>Nome<input name="name" required placeholder="Nome completo"></label>
-    <label>Função (opcional)<input name="function" placeholder="Ex.: tratorista, vaqueiro, colhedor"></label>
+    <label>Função<select name="function" required><option value="">Selecione</option><option value="Tratorista">Tratorista</option><option value="Campo">Campo</option></select></label>
     <label>Chave PIX (opcional)<input name="pixKey" placeholder="CPF, telefone, e-mail ou chave aleatória"></label>
+    <label>Fazenda permitida<select name="allowedFarmId" required>${data.farms.map(f => `<option value="${f.id}">${escapeHTML(f.name)} • ${farmTypeLabel(f)}</option>`).join("")}</select></label>
     <label>Usuário<input name="username" required placeholder="Ex.: joao.silva"></label>
     <label>Senha inicial<input name="password" type="password" minlength="6" required placeholder="Mínimo 6 caracteres"></label>
   </div><div class="form-actions"><button class="btn primary">Cadastrar contribuinte</button></div></form>`;
@@ -506,6 +556,7 @@ function bindQuickContributor() {
       name: f.get("name"),
       function: f.get("function"),
       pixKey: f.get("pixKey"),
+      allowedFarmId: f.get("allowedFarmId"),
       username: f.get("username"),
       password: f.get("password"),
       role: "contribuinte"
@@ -638,6 +689,26 @@ function equipmentTable(type) {
   const arr = type === "tractor" ? activeFarm().tractors : activeFarm().implements;
   if (!arr.length) return `<div class="card empty">Nenhum item cadastrado.</div>`;
   return `<div class="table-wrap"><table><thead><tr><th>Nome</th><th>${type === "tractor" ? "Modelo / ID" : "Categoria"}</th><th>Status</th><th></th></tr></thead><tbody>${arr.map(x => `<tr><td><b>${escapeHTML(x.name)}</b></td><td>${type === "tractor" ? `${escapeHTML(x.model || "—")} • ${escapeHTML(x.plate || "—")}` : escapeHTML(x.category || "—")}</td><td><span class="badge ${x.status === "Disponível" ? "green" : "gold"}">${escapeHTML(x.status)}</span></td><td><button class="btn danger small delete-equipment" data-type="${type}" data-id="${x.id}">Excluir</button></td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderTalhoes() {
+  if (currentUser.role !== "ceo") return;
+  if (selectedType() !== "coffee") {
+    setHeader("TALHÕES", "Talhões");
+    $("#pageContent").innerHTML = `<div class="card soft"><h2>Talhões disponíveis para café</h2><p class="muted">Selecione uma fazenda de café para cadastrar os talhões.</p></div>`;
+    return;
+  }
+  setHeader("TALHÕES", isGeneralView() ? "Talhões gerais" : "Talhões");
+  if (isGeneralView()) {
+    const all = data.farms.filter(f => f.type === "coffee").flatMap(f => (f.talhoes || []).map(t => ({ ...t, farmName: f.name })));
+    $("#pageContent").innerHTML = `<div class="card soft"><span class="eyebrow dark">VISÃO GERAL</span><h2>${all.length} talhões</h2><p class="muted">Para criar ou apagar talhões, escolha uma fazenda específica de café.</p></div><div class="section-head"><h2>Talhões cadastrados</h2></div>${all.length ? `<div class="table-wrap"><table><thead><tr><th>Fazenda</th><th>Talhão</th></tr></thead><tbody>${all.map(t => `<tr><td>${escapeHTML(t.farmName)}</td><td><b>${escapeHTML(t.name)}</b></td></tr>`).join("")}</tbody></table></div>` : `<div class="card empty">Nenhum talhão cadastrado.</div>`}`;
+    return;
+  }
+  const farm = activeFarm();
+  farm.talhoes = Array.isArray(farm.talhoes) ? farm.talhoes : [];
+  $("#pageContent").innerHTML = `<div class="grid two"><form id="plotForm" class="form-card"><div class="inline"><h3>Novo talhão</h3><span class="badge gold right">Somente CEO</span></div><label>Nome do talhão<input name="name" required placeholder="Ex.: Talhão 01, Baixada, Chapadão"></label><div class="form-actions"><button class="btn primary">Adicionar talhão</button></div></form><div class="card soft"><span class="eyebrow dark">${escapeHTML(farm.name)}</span><h2>${farm.talhoes.length} talhões</h2><p class="muted">Os contribuidores poderão selecionar um ou vários talhões no trabalho do dia.</p></div></div><div class="section-head"><h2>Talhões cadastrados</h2></div><div class="grid three">${farm.talhoes.map(t => `<div class="card"><div class="inline"><h3>${escapeHTML(t.name)}</h3><button class="btn danger small plot-del right" data-id="${t.id}">Excluir</button></div></div>`).join("") || `<div class="card empty">Nenhum talhão cadastrado.</div>`}</div>`;
+  $("#plotForm").onsubmit = e => { e.preventDefault(); const f = new FormData(e.target); const name = String(f.get("name") || "").trim(); if (!name) return; if (farm.talhoes.some(t => t.name.toLowerCase() === name.toLowerCase())) return toast("Esse talhão já existe."); farm.talhoes.push({ id: uid(), name }); saveData(); renderTalhoes(); toast("Talhão adicionado."); };
+  $$(".plot-del").forEach(btn => btn.onclick = () => { const plot = farm.talhoes.find(t => t.id === btn.dataset.id); if (!plot) return; if (!confirm(`Excluir ${plot.name}?`)) return; farm.talhoes = farm.talhoes.filter(t => t.id !== plot.id); saveData(); renderTalhoes(); toast("Talhão excluído."); });
 }
 
 function renderStock() {
@@ -848,6 +919,7 @@ function renderFarms() {
     if (!confirm(`Excluir ${farm.name}? Os dados desta fazenda serão apagados deste navegador.`)) return;
     data.farms = data.farms.filter(x => x.id !== farm.id);
     data.receipts = data.receipts.filter(r => r.farmId !== farm.id);
+    data.users.forEach(u => { if (u.role === "contribuinte" && u.allowedFarmId === farm.id) u.allowedFarmId = data.farms[0]?.id || ""; });
     if (activeFarmId === farm.id) activeFarmId = data.farms[0].id;
     saveData(); renderFarmSelector(); renderFarms(); toast("Fazenda excluída.");
   });
@@ -855,45 +927,97 @@ function renderFarms() {
 
 function renderUsers() {
   if (currentUser.role !== "ceo") return;
-  setHeader("ACESSOS", "Usuários e solicitações");
+  setHeader("ACESSOS", "Usuários e perfis");
+  const farmOptions = (selected = "") => data.farms.map(f => `<option value="${f.id}" ${f.id === selected ? "selected" : ""}>${escapeHTML(f.name)} • ${farmTypeLabel(f)}</option>`).join("");
+  const functionOptions = (selected = "Campo") => `<option value="Tratorista" ${selected === "Tratorista" ? "selected" : ""}>Tratorista</option><option value="Campo" ${selected === "Campo" ? "selected" : ""}>Campo</option>`;
   $("#pageContent").innerHTML = `
-    <div class="grid two"><form id="userForm" class="form-card"><div class="inline"><h3>Criar login</h3><span class="badge gold right">Somente CEO</span></div><div class="form-grid" style="margin-top:18px"><label>Nome<input name="name" required></label><label>Função (opcional)<input name="function"></label><label>Chave PIX (opcional)<input name="pixKey"></label><label>Usuário<input name="username" required></label><label>Senha inicial<input name="password" type="password" minlength="6" required></label><label>Perfil<select name="role"><option value="contribuinte">Contribuinte</option><option value="adm">Administrador</option><option value="ceo">CEO</option></select></label></div><div class="form-actions"><button class="btn primary">Criar login</button></div></form><div class="card soft"><span class="eyebrow dark">ACESSOS</span><h2>${data.users.filter(u => u.active !== false).length} ativos</h2><p class="muted">Aqui o CEO pode criar, aceitar, bloquear e excluir acessos.</p></div></div>
+    <div class="grid two"><form id="userForm" class="form-card"><div class="inline"><h3>Criar login</h3><span class="badge gold right">Somente CEO</span></div><div class="form-grid" style="margin-top:18px"><label>Nome<input name="name" required></label><label id="newUserFunctionWrap">Função<select name="function" id="newUserFunction" required><option value="">Selecione</option><option value="Tratorista">Tratorista</option><option value="Campo">Campo</option></select></label><label>Chave PIX (opcional)<input name="pixKey"></label><label>Usuário<input name="username" required></label><label>Senha inicial<input name="password" type="password" minlength="6" required></label><label>Perfil<select name="role" id="newUserRole"><option value="contribuinte">Contribuinte</option><option value="adm">Administrador</option><option value="ceo">CEO</option></select></label><label class="wide" id="newUserFarmWrap">Fazenda permitida<select name="allowedFarmId">${farmOptions(data.farms[0]?.id || "")}</select></label></div><div class="form-actions"><button class="btn primary">Criar login</button></div></form><div class="card soft"><span class="eyebrow dark">PERFIL DE ACESSO</span><h2>${data.users.filter(u => u.active !== false).length} ativos</h2><p class="muted">Para contribuinte, a função é obrigatória: Tratorista ou Campo. Cada contribuinte fica vinculado a uma única fazenda.</p></div></div>
     <div class="section-head"><h2>Solicitações pendentes</h2></div>
-    ${data.pendingRegistrations.length ? `<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Função</th><th>PIX</th><th>Pedido em</th><th>Ações</th></tr></thead><tbody>${data.pendingRegistrations.map(r => `<tr><td><b>${escapeHTML(r.name)}</b></td><td>${escapeHTML(r.username)}</td><td>${ROLE_NAMES[r.role]}</td><td>${escapeHTML(r.function || "—")}</td><td>${escapeHTML(r.pixKey || "—")}</td><td>${new Date(r.createdAt).toLocaleString("pt-BR")}</td><td><div class="inline"><button class="btn small reg-approve" data-id="${r.id}">Aceitar</button><button class="btn danger small reg-reject" data-id="${r.id}">Recusar</button></div></td></tr>`).join("")}</tbody></table></div>` : `<div class="card empty">Nenhuma solicitação pendente.</div>`}
-    <div class="section-head"><h2>Usuários cadastrados</h2></div>
-    <div class="table-wrap"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Função</th><th>PIX</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.users.map(u => `<tr><td><b>${escapeHTML(u.name)}</b>${u.id === currentUser.id ? ' <span class="badge gold">Você</span>' : ""}</td><td>${escapeHTML(u.username)}</td><td>${ROLE_NAMES[u.role]}</td><td>${escapeHTML(u.function || "—")}</td><td>${escapeHTML(u.pixKey || "—")}</td><td><span class="badge ${u.active !== false ? "green" : "red"}">${u.active !== false ? "Ativo" : "Bloqueado"}</span></td><td><div class="inline"><button class="btn small user-pass" data-id="${u.id}">Senha</button><button class="btn small user-toggle" data-id="${u.id}">${u.active !== false ? "Desativar" : "Ativar"}</button><button class="btn danger small user-del" data-id="${u.id}">Excluir</button></div></td></tr>`).join("")}</tbody></table></div>`;
+    ${data.pendingRegistrations.length ? `<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Função</th><th>PIX</th><th>Fazenda ao aprovar</th><th>Ações</th></tr></thead><tbody>${data.pendingRegistrations.map(r => `<tr><td><b>${escapeHTML(r.name)}</b></td><td>${escapeHTML(r.username)}</td><td>${ROLE_NAMES[r.role]}</td><td>${escapeHTML(r.function || "—")}</td><td>${escapeHTML(r.pixKey || "—")}</td><td>${r.role === "contribuinte" ? `<select class="reg-farm" data-id="${r.id}" style="min-width:180px">${farmOptions(data.farms[0]?.id || "")}</select>` : "Todas"}</td><td><div class="inline"><button class="btn small reg-approve" data-id="${r.id}">Aceitar</button><button class="btn danger small reg-reject" data-id="${r.id}">Recusar</button></div></td></tr>`).join("")}</tbody></table></div>` : `<div class="card empty">Nenhuma solicitação pendente.</div>`}
+    <div class="section-head"><div><h2>Usuários cadastrados</h2><p>Altere a função e a fazenda dos contribuidores diretamente aqui.</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Função</th><th>PIX</th><th>Fazenda do perfil</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.users.map(u => `<tr><td><b>${escapeHTML(u.name)}</b>${u.id === currentUser.id ? ' <span class="badge gold">Você</span>' : ""}</td><td>${escapeHTML(u.username)}</td><td>${ROLE_NAMES[u.role]}</td><td>${u.role === "contribuinte" ? `<select class="user-function" data-id="${u.id}" style="min-width:130px">${functionOptions(u.function)}</select>` : escapeHTML(u.function || "—")}</td><td>${escapeHTML(u.pixKey || "—")}</td><td>${u.role === "contribuinte" ? `<select class="user-farm" data-id="${u.id}" style="min-width:180px">${farmOptions(u.allowedFarmId)}</select>` : '<span class="badge">Todas as fazendas</span>'}</td><td><span class="badge ${u.active !== false ? "green" : "red"}">${u.active !== false ? "Ativo" : "Bloqueado"}</span></td><td><div class="inline"><button class="btn small user-pass" data-id="${u.id}">Senha</button><button class="btn small user-toggle" data-id="${u.id}">${u.active !== false ? "Desativar" : "Ativar"}</button><button class="btn danger small user-del" data-id="${u.id}">Excluir</button></div></td></tr>`).join("")}</tbody></table></div>`;
 
-  $("#userForm").onsubmit = e => {
+  const roleSelect = $("#newUserRole");
+  const farmWrap = $("#newUserFarmWrap");
+  const functionWrap = $("#newUserFunctionWrap");
+  const functionSelect = $("#newUserFunction");
+  const syncNewUserFields = () => {
+    const contributor = roleSelect.value === "contribuinte";
+    farmWrap.classList.toggle("hidden", !contributor);
+    functionWrap.classList.toggle("hidden", !contributor);
+    functionSelect.disabled = !contributor;
+    functionSelect.required = contributor;
+  };
+  roleSelect.onchange = syncNewUserFields; syncNewUserFields();
+
+  $("#userForm").onsubmit = e => { e.preventDefault(); const f = new FormData(e.target); createUser(Object.fromEntries(f.entries()), renderUsers); };
+  $$(".reg-approve").forEach(btn => btn.onclick = () => { const farmSelect = document.querySelector(`.reg-farm[data-id="${btn.dataset.id}"]`); approveRegistration(btn.dataset.id, farmSelect?.value || ""); });
+  $$(".reg-reject").forEach(btn => btn.onclick = () => rejectRegistration(btn.dataset.id));
+  $$(".user-function").forEach(sel => sel.onchange = () => { const user = data.users.find(x => x.id === sel.dataset.id); if (!user || user.role !== "contribuinte") return; user.function = sel.value; saveData(); toast("Função atualizada."); });
+  $$(".user-farm").forEach(sel => sel.onchange = () => { const user = data.users.find(x => x.id === sel.dataset.id); if (!user || user.role !== "contribuinte") return; user.allowedFarmId = sel.value; saveData(); toast("Fazenda do perfil atualizada."); });
+  $$(".user-pass").forEach(btn => btn.onclick = () => { const user = data.users.find(x => x.id === btn.dataset.id); const p = prompt(`Nova senha para ${user.username}:`); if (p === null) return; if (p.length < 6) return toast("Mínimo 6 caracteres."); user.password = p; saveData(); toast("Senha alterada."); });
+  $$(".user-toggle").forEach(btn => btn.onclick = () => { const user = data.users.find(x => x.id === btn.dataset.id); if (user.id === currentUser.id) return toast("Você não pode desativar seu próprio acesso."); if (user.role === "ceo" && user.active !== false && data.users.filter(x => x.role === "ceo" && x.active !== false).length <= 1) return toast("Mantenha pelo menos um CEO ativo."); user.active = user.active === false; saveData(); renderUsers(); });
+  $$(".user-del").forEach(btn => btn.onclick = () => { const user = data.users.find(x => x.id === btn.dataset.id); if (user.id === currentUser.id) return toast("Você não pode excluir seu próprio acesso."); if (user.role === "ceo" && user.active !== false && data.users.filter(x => x.role === "ceo" && x.active !== false).length <= 1) return toast("Mantenha pelo menos um CEO ativo."); if (!confirm(`Excluir ${user.name}?`)) return; data.users = data.users.filter(x => x.id !== user.id); data.receipts = data.receipts.filter(r => r.userId !== user.id); saveData(); renderUsers(); });
+}
+
+function equipmentLogsInContext() {
+  if (activeFarmId === "general-coffee") {
+    return data.farms.filter(f => f.type === "coffee").flatMap(f => (f.equipmentLogs || []).map(log => ({ ...log, farmName: f.name, farmId: f.id })));
+  }
+  const farm = activeFarm();
+  if (!farm || farm.type !== "coffee") return [];
+  return (farm.equipmentLogs || []).map(log => ({ ...log, farmName: farm.name, farmId: farm.id }));
+}
+
+function renderEquipmentLog() {
+  if (currentUser.role !== "ceo") return;
+  setHeader("HISTÓRICO", "Log equipamentos");
+  const logs = equipmentLogsInContext().sort((a, b) => String(b.loggedAt || b.date || "").localeCompare(String(a.loggedAt || a.date || "")));
+  const coffeeFarms = data.farms.filter(f => f.type === "coffee");
+  if (selectedType() === "cattle") {
+    $("#pageContent").innerHTML = `<div class="card soft"><span class="eyebrow dark">LOG DE EQUIPAMENTOS</span><h2>Disponível para fazendas de café</h2><p class="muted">Selecione uma fazenda de café ou a opção Geral • Café para consultar o histórico de responsáveis.</p></div>`;
+    return;
+  }
+  $("#pageContent").innerHTML = `
+    <div class="grid kpis"><div class="card"><div class="kpi-label"><span>Registros</span></div><div class="kpi-value">${logs.length}</div><div class="kpi-foot">responsabilidades salvas</div></div><div class="card"><div class="kpi-label"><span>Contribuintes</span></div><div class="kpi-value">${new Set(logs.map(l => l.user)).size}</div><div class="kpi-foot">pessoas no histórico</div></div><div class="card"><div class="kpi-label"><span>Fazendas de café</span></div><div class="kpi-value">${coffeeFarms.length}</div><div class="kpi-foot">disponíveis no sistema</div></div></div>
+    <div class="section-head"><div><h2>Histórico de responsabilidade</h2><p>Cada confirmação ou troca gera um registro permanente, incluindo os talhões selecionados.</p></div></div>
+    ${logs.length ? `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Fazenda</th><th>Contribuinte</th><th>Função</th><th>Atividade</th><th>Talhão(ões)</th><th>Trator</th><th>Implemento</th><th>Registrado em</th></tr></thead><tbody>${logs.map(log => { const fn = log.userFunction || data.users.find(u => u.username === log.user)?.function || "Campo"; const plots = (log.talhaoNames || []).join(", ") || "—"; return `<tr><td>${dateBR(log.date)}</td><td>${escapeHTML(log.farmName || "—")}</td><td><b>${escapeHTML(log.userName || log.user || "—")}</b></td><td>${escapeHTML(fn)}</td><td>${escapeHTML(log.activity || "—")}</td><td>${escapeHTML(plots)}</td><td>${escapeHTML(log.tractorName || "—")}</td><td>${escapeHTML(log.implementName || "—")}</td><td>${log.loggedAt ? new Date(log.loggedAt).toLocaleString("pt-BR") : "—"}</td></tr>`; }).join("")}</tbody></table></div>` : `<div class="card empty">Ainda não há registros. Eles aparecerão quando um contribuinte confirmar o trabalho do dia.</div>`}`;
+}
+
+function renderProfile() {
+  setHeader("CONTA", "Perfil");
+  const assignedFarm = currentUser.role === "contribuinte" ? data.farms.find(f => f.id === currentUser.allowedFarmId) : null;
+  const farmOptions = (selected = "") => data.farms.map(f => `<option value="${f.id}" ${f.id === selected ? "selected" : ""}>${escapeHTML(f.name)} • ${farmTypeLabel(f)}</option>`).join("");
+  const functionOptions = (selected = "Campo") => `<option value="Tratorista" ${selected === "Tratorista" ? "selected" : ""}>Tratorista</option><option value="Campo" ${selected === "Campo" ? "selected" : ""}>Campo</option>`;
+  const contributors = data.users.filter(u => u.role === "contribuinte");
+  const ceoAccessManager = currentUser.role === "ceo" ? `
+    <div class="section-head"><div><h2>Perfis dos contribuidores</h2><p>Defina a função e a única fazenda que cada contribuinte poderá visualizar.</p></div></div>
+    ${contributors.length ? `<div class="table-wrap"><table><thead><tr><th>Contribuinte</th><th>Usuário</th><th>Função</th><th>Fazenda liberada</th><th>Status</th></tr></thead><tbody>${contributors.map(u => `<tr><td><b>${escapeHTML(u.name)}</b></td><td>${escapeHTML(u.username)}</td><td><select class="profile-user-function" data-id="${u.id}" style="min-width:135px">${functionOptions(u.function)}</select></td><td><select class="profile-user-farm" data-id="${u.id}" style="min-width:210px">${farmOptions(u.allowedFarmId)}</select></td><td><span class="badge ${u.active !== false ? "green" : "red"}">${u.active !== false ? "Ativo" : "Bloqueado"}</span></td></tr>`).join("")}</tbody></table></div>` : `<div class="card empty">Nenhum contribuinte cadastrado.</div>`}` : "";
+
+  const functionField = currentUser.role === "contribuinte"
+    ? `<label>Função<select name="function" required>${functionOptions(currentUser.function)}</select></label>`
+    : `<label>Função<input name="function" value="${escapeHTML(currentUser.function || "")}"></label>`;
+
+  $("#pageContent").innerHTML = `
+    <div class="grid two"><form id="profileForm" class="form-card"><div class="inline"><h3>Meus dados</h3><span class="badge right">${ROLE_NAMES[currentUser.role]}</span></div><div class="form-grid" style="margin-top:18px"><label>Nome<input name="name" value="${escapeHTML(currentUser.name || "")}" required></label><label>Usuário<input value="${escapeHTML(currentUser.username || "")}" disabled></label>${functionField}<label>Chave PIX<input name="pixKey" value="${escapeHTML(currentUser.pixKey || "")}" placeholder="Opcional"></label>${currentUser.role === "contribuinte" ? `<label class="wide">Fazenda liberada<input value="${escapeHTML(assignedFarm?.name || "Nenhuma fazenda definida")}" disabled></label>` : `<label class="wide">Acesso às fazendas<input value="Todas as fazendas" disabled></label>`}</div><div class="form-actions"><button class="btn primary">Salvar perfil</button></div></form><div class="card soft"><span class="eyebrow dark">ACESSO</span><h2>${currentUser.role === "contribuinte" ? escapeHTML(assignedFarm?.name || "Sem fazenda") : "Acesso geral"}</h2><p class="muted">${currentUser.role === "contribuinte" ? "A fazenda do seu acesso só pode ser alterada pelo CEO." : "Seu perfil pode acessar as fazendas conforme as permissões do cargo."}</p></div></div>
+    ${ceoAccessManager}`;
+
+  $("#profileForm").onsubmit = e => {
     e.preventDefault();
     const f = new FormData(e.target);
-    createUser(Object.fromEntries(f.entries()), renderUsers);
+    const fn = String(f.get("function") || "").trim();
+    if (currentUser.role === "contribuinte" && !["Tratorista", "Campo"].includes(fn)) return toast("Selecione Tratorista ou Campo.");
+    currentUser.name = String(f.get("name") || "").trim();
+    currentUser.function = fn;
+    currentUser.pixKey = String(f.get("pixKey") || "").trim();
+    saveData();
+    $("#userName").textContent = currentUser.name;
+    $("#userAvatar").textContent = currentUser.name?.[0]?.toUpperCase() || "U";
+    toast("Perfil atualizado.");
+    renderProfile();
   };
-  $$(".reg-approve").forEach(btn => btn.onclick = () => approveRegistration(btn.dataset.id));
-  $$(".reg-reject").forEach(btn => btn.onclick = () => rejectRegistration(btn.dataset.id));
-  $$(".user-pass").forEach(btn => btn.onclick = () => {
-    const user = data.users.find(x => x.id === btn.dataset.id);
-    const p = prompt(`Nova senha para ${user.username}:`);
-    if (p === null) return;
-    if (p.length < 6) return toast("Mínimo 6 caracteres.");
-    user.password = p;
-    saveData(); toast("Senha alterada.");
-  });
-  $$(".user-toggle").forEach(btn => btn.onclick = () => {
-    const user = data.users.find(x => x.id === btn.dataset.id);
-    if (user.id === currentUser.id) return toast("Você não pode desativar seu próprio acesso.");
-    if (user.role === "ceo" && user.active !== false && data.users.filter(x => x.role === "ceo" && x.active !== false).length <= 1) return toast("Mantenha pelo menos um CEO ativo.");
-    user.active = user.active === false;
-    saveData(); renderUsers();
-  });
-  $$(".user-del").forEach(btn => btn.onclick = () => {
-    const user = data.users.find(x => x.id === btn.dataset.id);
-    if (user.id === currentUser.id) return toast("Você não pode excluir seu próprio acesso.");
-    if (user.role === "ceo" && user.active !== false && data.users.filter(x => x.role === "ceo" && x.active !== false).length <= 1) return toast("Mantenha pelo menos um CEO ativo.");
-    if (!confirm(`Excluir ${user.name}?`)) return;
-    data.users = data.users.filter(x => x.id !== user.id);
-    data.receipts = data.receipts.filter(r => r.userId !== user.id);
-    saveData(); renderUsers();
-  });
+  $$(".profile-user-function").forEach(sel => sel.onchange = () => { const user = data.users.find(u => u.id === sel.dataset.id); if (!user || user.role !== "contribuinte") return; user.function = sel.value; saveData(); toast(`Função de ${user.name} atualizada.`); });
+  $$(".profile-user-farm").forEach(sel => sel.onchange = () => { const user = data.users.find(u => u.id === sel.dataset.id); if (!user || user.role !== "contribuinte") return; user.allowedFarmId = sel.value; saveData(); toast(`Fazenda de ${user.name} atualizada.`); });
 }
 
 function renderPayments() {
@@ -1022,25 +1146,31 @@ function renderContributorDay() {
   const farm = activeFarm();
   if (farm.type !== "coffee") return renderCattleReadOnly();
   setHeader("CAMPO", "Meu trabalho hoje");
+  farm.talhoes = Array.isArray(farm.talhoes) ? farm.talhoes : [];
   const existing = todayAssignment();
-  const busyT = new Set(farm.assignments.filter(a => a.date === todayISO() && a.user !== currentUser.username).map(a => a.tractorId));
-  const busyI = new Set(farm.assignments.filter(a => a.date === todayISO() && a.user !== currentUser.username).map(a => a.implementId));
+  const busyT = new Set(farm.assignments.filter(a => a.date === todayISO() && a.user !== currentUser.username).map(a => a.tractorId).filter(Boolean));
+  const busyI = new Set(farm.assignments.filter(a => a.date === todayISO() && a.user !== currentUser.username).map(a => a.implementId).filter(Boolean));
   const tractors = farm.tractors.filter(t => t.status === "Disponível" && !busyT.has(t.id));
   const implementsList = farm.implements.filter(i => i.status === "Disponível" && !busyI.has(i.id));
-  $("#pageContent").innerHTML = `<div class="assignment-hero"><div><span class="eyebrow">RESPONSABILIDADE DO DIA</span><h2>${existing ? "Equipamentos reservados." : "Escolha seus equipamentos."}</h2><p>O registro identifica o responsável durante o dia.</p></div><div class="assignment-status"><strong>${dateBR(todayISO())}</strong></div></div>${existing ? `<div class="grid two" style="margin-top:18px"><div class="card"><h3>Trator</h3><h2>${escapeHTML(existing.tractorName)}</h2></div><div class="card"><h3>Implemento</h3><h2>${escapeHTML(existing.implementName)}</h2></div></div><div class="card" style="margin-top:18px"><b>Atividade:</b> ${escapeHTML(existing.activity)}<div class="form-actions"><button id="changeAssignment" class="btn">Alterar</button></div></div>` : `<form id="assignmentForm"><div class="form-card"><label style="margin:0">Atividade<input name="activity" required></label></div><div class="section-head"><h2>Trator</h2></div><div class="grid two">${tractors.map(t => `<label class="equipment-pick"><span class="icon">${ico("tractor")}</span><span><strong>${escapeHTML(t.name)}</strong><span>${escapeHTML(t.model || "")}</span></span><input type="radio" name="tractor" value="${t.id}" required></label>`).join("") || `<div class="card empty">Nenhum trator disponível.</div>`}</div><div class="section-head"><h2>Implemento</h2></div><div class="grid two">${implementsList.map(i => `<label class="equipment-pick"><span class="icon">${ico("gear")}</span><span><strong>${escapeHTML(i.name)}</strong><span>${escapeHTML(i.category || "")}</span></span><input type="radio" name="implement" value="${i.id}" required></label>`).join("") || `<div class="card empty">Nenhum implemento disponível.</div>`}</div><div class="form-actions"><button class="btn primary">Confirmar responsabilidade</button></div></form>`}`;
+  const requiresEquipment = currentUser.function === "Tratorista";
+  const selectedPlots = existing?.talhaoNames || [];
+  $("#pageContent").innerHTML = `<div class="assignment-hero"><div><span class="eyebrow">RESPONSABILIDADE DO DIA • ${escapeHTML(currentUser.function || "Campo")}</span><h2>${existing ? "Trabalho do dia confirmado." : "Escolha seu trabalho do dia."}</h2><p>Selecione a atividade, um ou mais talhões e os equipamentos sob sua responsabilidade.</p></div><div class="assignment-status"><strong>${dateBR(todayISO())}</strong></div></div>${existing ? `<div class="grid two" style="margin-top:18px"><div class="card"><h3>Talhão(ões)</h3><h2 style="font-size:22px">${escapeHTML(selectedPlots.join(", ") || "—")}</h2></div><div class="card"><h3>Função</h3><h2 style="font-size:22px">${escapeHTML(existing.userFunction || currentUser.function || "Campo")}</h2></div><div class="card"><h3>Trator</h3><h2>${escapeHTML(existing.tractorName || "Não selecionado")}</h2></div><div class="card"><h3>Implemento</h3><h2>${escapeHTML(existing.implementName || "Não selecionado")}</h2></div></div><div class="card" style="margin-top:18px"><b>Atividade:</b> ${escapeHTML(existing.activity)}<div class="form-actions"><button id="changeAssignment" class="btn">Alterar</button></div></div>` : `<form id="assignmentForm"><div class="form-card"><label style="margin:0">Atividade<input name="activity" required placeholder="Ex.: roçada, aplicação, colheita, limpeza..."></label></div><div class="section-head"><div><h2>Talhão</h2><p>Escolha um ou mais talhões.</p></div></div><div class="grid three">${farm.talhoes.length ? farm.talhoes.map(t => `<label class="equipment-pick"><span><strong>${escapeHTML(t.name)}</strong><span>Selecionar talhão</span></span><input type="checkbox" name="talhoes" value="${t.id}"></label>`).join("") : `<div class="card empty">Nenhum talhão cadastrado. Peça ao CEO para cadastrar os talhões desta fazenda.</div>`}</div><div class="section-head"><div><h2>Trator</h2><p>${requiresEquipment ? "Obrigatório para Tratorista." : "Opcional para função Campo."}</p></div></div><div class="grid two">${tractors.map(t => `<label class="equipment-pick"><span><strong>${escapeHTML(t.name)}</strong><span>${escapeHTML(t.model || "")}</span></span><input type="radio" name="tractor" value="${t.id}" ${requiresEquipment ? "required" : ""}></label>`).join("") || `<div class="card empty">Nenhum trator disponível.</div>`}</div><div class="section-head"><div><h2>Implemento</h2><p>${requiresEquipment ? "Obrigatório para Tratorista." : "Opcional para função Campo."}</p></div></div><div class="grid two">${implementsList.map(i => `<label class="equipment-pick"><span><strong>${escapeHTML(i.name)}</strong><span>${escapeHTML(i.category || "")}</span></span><input type="radio" name="implement" value="${i.id}" ${requiresEquipment ? "required" : ""}></label>`).join("") || `<div class="card empty">Nenhum implemento disponível.</div>`}</div><div class="form-actions"><button class="btn primary">Confirmar responsabilidade</button></div></form>`}`;
   if (existing) {
-    $("#changeAssignment").onclick = () => {
-      farm.assignments = farm.assignments.filter(a => !(a.user === currentUser.username && a.date === todayISO()));
-      saveData(); renderContributorDay();
-    };
+    $("#changeAssignment").onclick = () => { farm.assignments = farm.assignments.filter(a => !(a.user === currentUser.username && a.date === todayISO())); saveData(); renderContributorDay(); };
   } else if ($("#assignmentForm")) {
     $("#assignmentForm").onsubmit = e => {
       e.preventDefault();
       const f = new FormData(e.target);
+      const talhaoIds = f.getAll("talhoes");
+      if (!talhaoIds.length) return toast("Escolha pelo menos um talhão.");
+      const talhaoNames = talhaoIds.map(id => farm.talhoes.find(t => t.id === id)?.name).filter(Boolean);
       const tractor = farm.tractors.find(x => x.id === f.get("tractor"));
       const implemento = farm.implements.find(x => x.id === f.get("implement"));
-      if (!tractor || !implemento) return toast("Escolha um trator e um implemento.");
-      farm.assignments.push({ id: uid(), date: todayISO(), user: currentUser.username, userName: currentUser.name, activity: f.get("activity"), tractorId: tractor.id, tractorName: tractor.name, implementId: implemento.id, implementName: implemento.name });
+      if (requiresEquipment && (!tractor || !implemento)) return toast("Tratorista precisa escolher um trator e um implemento.");
+      const assignment = { id: uid(), date: todayISO(), user: currentUser.username, userName: currentUser.name, userFunction: currentUser.function || "Campo", activity: f.get("activity"), talhaoIds, talhaoNames, tractorId: tractor?.id || "", tractorName: tractor?.name || "", implementId: implemento?.id || "", implementName: implemento?.name || "" };
+      farm.assignments.push(assignment);
+      farm.equipmentLogs = Array.isArray(farm.equipmentLogs) ? farm.equipmentLogs : [];
+      farm.equipmentLogs.push({ ...assignment, id: uid(), assignmentId: assignment.id, loggedAt: new Date().toISOString() });
       saveData(); renderContributorDay();
     };
   }
