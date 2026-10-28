@@ -16,8 +16,6 @@ async function loadConfig(){
     const c=await jsonFetch("/api/public/config");
     if(Number.isFinite(Number(c.planPrice))) qs("#planPrice").textContent=moneyBR(c.planPrice);
     paymentConfigured=Boolean(c.paymentConfigured);
-    if(c.testPurchaseMode) qs("#paymentHint").textContent="MODO DE TESTE ATIVO — o botão Comprar acesso simula uma assinatura aprovada e não cobra nada.";
-    else if(!paymentConfigured) qs("#paymentHint").textContent="Checkout pronto. Configure Mercado Pago no servidor para aceitar assinaturas reais; em ambiente de teste, TEST_PURCHASE_MODE=true libera o fluxo completo.";
   }catch(_){ }
 }
 
