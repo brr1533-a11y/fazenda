@@ -1,0 +1,140 @@
+{
+  "groups": [
+    {
+      "id": "734429c2-eab8-4ec1-a97d-a19cbbe79e62",
+      "slug": "grupo-fagundes-miari",
+      "code": "1001",
+      "name": "Grupo Fagundes Miari",
+      "status": "active",
+      "plan": "pro",
+      "state": {
+        "version": 21,
+        "interfaceMode": "coffee",
+        "users": [
+          {
+            "id": "8557183c-c6f3-4cd9-ac3e-2887fc31184a",
+            "username": "jacquesmiari",
+            "name": "Jacques Miari",
+            "role": "ceo",
+            "active": true,
+            "function": "CEO",
+            "pixKey": "",
+            "allowedFarmId": "",
+            "allowedActivity": "both",
+            "email": "",
+            "passwordHash": "$2a$11$BDBr.rI8HlGOKoeyryAg.u9PaHQ9DPBN7Fc3vcidi52wT92JyrgTK"
+          }
+        ],
+        "pendingRegistrations": [
+          {
+            "id": "3ae432ea-f4d2-4491-86a0-6aac6804b618",
+            "name": "breno",
+            "username": "breno22",
+            "role": "contribuinte",
+            "function": "Campo",
+            "pixKey": "",
+            "createdAt": "2026-10-28T13:56:15.178Z",
+            "allowedActivity": "both",
+            "passwordHash": "$2a$11$38KQpyhdWH7zHihxiowV1O2PBeYBdviqM75apvHuGtVXp37f.JkSC"
+          },
+          {
+            "id": "addc7a27-990e-4583-a17a-f0bcc9485e86",
+            "name": "Breno rodrigues",
+            "username": "brenorf",
+            "role": "contribuinte",
+            "function": "Campo",
+            "pixKey": "",
+            "createdAt": "2026-10-28T13:57:59.151Z",
+            "allowedActivity": "both",
+            "passwordHash": "$2a$11$hu0jB6wQZ38VAKt00GPu8.DQLNWXv9X6zRat04f/K8busqKlHJJ/2"
+          }
+        ],
+        "farms": [
+          {
+            "id": "4d03c401-bb51-4f2d-9e52-731ea93ef451",
+            "name": "Engenho",
+            "type": "mixed",
+            "photo": "",
+            "tractors": [],
+            "implements": [],
+            "stock": [],
+            "finances": [],
+            "notes": [],
+            "assignments": [],
+            "equipmentLogs": [],
+            "talhoes": [],
+            "cattle": {
+              "lots": [],
+              "weighings": []
+            },
+            "banho": {
+              "products": [],
+              "orders": []
+            }
+          },
+          {
+            "id": "a5c2dd95-7106-4404-b855-64f4b6704aef",
+            "name": "Lagoinha",
+            "type": "mixed",
+            "photo": "",
+            "tractors": [],
+            "implements": [],
+            "stock": [],
+            "finances": [],
+            "notes": [],
+            "assignments": [],
+            "equipmentLogs": [],
+            "talhoes": [],
+            "cattle": {
+              "lots": [],
+              "weighings": []
+            },
+            "banho": {
+              "products": [],
+              "orders": []
+            }
+          },
+          {
+            "id": "c0d448fd-3f9c-41e3-9a9f-689b4a205281",
+            "name": "Monte alegre",
+            "type": "mixed",
+            "photo": "",
+            "tractors": [],
+            "implements": [],
+            "stock": [],
+            "finances": [],
+            "notes": [],
+            "assignments": [],
+            "equipmentLogs": [],
+            "talhoes": [],
+            "cattle": {
+              "lots": [],
+              "weighings": []
+            },
+            "banho": {
+              "products": [],
+              "orders": []
+            }
+          }
+        ],
+        "receipts": []
+      },
+      "cloudInitialized": true,
+      "subscriptionId": null,
+      "payerEmail": null,
+      "createdAt": "2026-10-28T16:29:39.751Z",
+      "updatedAt": "2026-10-28T16:30:22.772Z"
+    }
+  ],
+  "sessions": [
+    {
+      "tokenHash": "803957dc382f9c25ccbda0df36b61dcab2e3bdc3859adc070106c7289f2a47e2",
+      "groupId": "734429c2-eab8-4ec1-a97d-a19cbbe79e62",
+      "userId": "8557183c-c6f3-4cd9-ac3e-2887fc31184a",
+      "expiresAt": "2026-11-27T16:30:15.220Z"
+    }
+  ],
+  "purchases": [],
+  "passwordResets": [],
+  "config": {}
+}

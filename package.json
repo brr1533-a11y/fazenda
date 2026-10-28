@@ -1,13 +1,19 @@
 {
-  "name": "fazenda-admin-moderno",
-  "version": "1.5.0",
+  "name": "gestao-rural-saas",
+  "version": "3.2.0",
   "private": true,
-  "description": "Gestão rural Grupo Fagundes Miari com módulos separados de Café e Gado",
+  "description": "Gestão Rural SaaS v21.2 — multi-grupo, exclusão administrativa e recuperação de senha por e-mail",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
   }
 }

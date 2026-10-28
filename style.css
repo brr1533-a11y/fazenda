@@ -270,3 +270,6 @@ tbody tr{transition:background .2s}tbody tr:hover{background:#fafafa}tr:last-chi
 .market-loader { display:inline-block; width:22px; height:22px; border:2px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:marketSpin .8s linear infinite; }
 @keyframes marketSpin { to { transform:rotate(360deg); } }
 @media (max-width: 650px) { .market-price { font-size:28px; } .market-ticker-track { animation-duration:22s; } }
+
+/* v21.2 — recuperação de senha */
+.auth-link{border:0;background:transparent;color:var(--muted,#777);font:600 12px Geist,Arial;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:10px 4px;width:100%;text-align:center}.auth-link:hover{color:var(--text,#171815)}

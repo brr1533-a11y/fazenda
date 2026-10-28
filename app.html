@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#160d08" />
+  <title>Gestão Rural • Acesso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <section id="loginView" class="login-shell">
+    <div class="login-art">
+      <div class="brand-pill" id="loginBrandPill">Gestão Rural</div>
+      <svg class="beans" aria-hidden="true" viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice"><defs>
+<radialGradient id="bn-g" cx="33%" cy="26%" r="90%"><stop offset="0" stop-color="#9a6644"/><stop offset=".3" stop-color="#6a3f28"/><stop offset=".7" stop-color="#3a1f12"/><stop offset="1" stop-color="#150905"/></radialGradient>
+<linearGradient id="bn-s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient>
+<linearGradient id="bn-r" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d9a066" stop-opacity=".55"/><stop offset=".4" stop-color="#d9a066" stop-opacity="0"/></linearGradient>
+<radialGradient id="bn-sh"><stop offset="0" stop-color="#000" stop-opacity=".6"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<radialGradient id="bn-hl"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<filter id="bn-rg" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="3" seed="7" result="n"/><feSpecularLighting in="n" surfaceScale="2" specularConstant=".6" specularExponent="16" lighting-color="#ffd9a6" result="s"><feDistantLight azimuth="225" elevation="48"/></feSpecularLighting><feComposite in="s" in2="SourceAlpha" operator="in" result="sc"/><feComposite in="SourceGraphic" in2="sc" operator="arithmetic" k1="0" k2="1" k3=".6" k4="0"/></filter>
+<filter id="bn-bl"><feGaussianBlur stdDeviation="3"/></filter>
+<symbol id="bn" viewBox="-60 -70 120 150" overflow="visible">
+<ellipse cx="10" cy="67" rx="48" ry="12" fill="url(#bn-sh)"/>
+<path d="M2 -62C33 -61 49 -32 47 3C45 38 27 63 -2 62C-31 61 -48 33 -46 -2C-44 -35 -26 -63 2 -62Z" fill="url(#bn-g)" filter="url(#bn-rg)"/>
+<path d="M2 -62C33 -61 49 -32 47 3C45 38 27 63 -2 62C-31 61 -48 33 -46 -2C-44 -35 -26 -63 2 -62Z" fill="url(#bn-s)"/>
+<path d="M2 -62C33 -61 49 -32 47 3C45 38 27 63 -2 62C-31 61 -48 33 -46 -2C-44 -35 -26 -63 2 -62Z" fill="none" stroke="url(#bn-r)" stroke-width="3"/>
+<path d="M0 -58C-22 -32 20 -10 -2 16C-16 36 10 48 3 60" fill="none" stroke="#000" stroke-opacity=".38" stroke-width="14" stroke-linecap="round"/>
+<path d="M0 -58C-22 -32 20 -10 -2 16C-16 36 10 48 3 60" fill="none" stroke="#070201" stroke-width="5.5" stroke-linecap="round"/>
+<path d="M0 -58C-22 -32 20 -10 -2 16C-16 36 10 48 3 60" transform="translate(4 0)" fill="none" stroke="#b98058" stroke-opacity=".6" stroke-width="1.5" stroke-linecap="round"/>
+<ellipse cx="-22" cy="-32" rx="12" ry="21" transform="rotate(28 -22 -32)" fill="url(#bn-hl)"/>
+<ellipse cx="-26" cy="-38" rx="3" ry="9" transform="rotate(28 -26 -38)" fill="#fff" fill-opacity=".45"/>
+</symbol></defs><use href="#bn" x="514" y="30" width="192" height="240" transform="rotate(24 610 150)"/><use href="#bn" x="270" y="175" width="120" height="150" transform="rotate(-38 330 250)" filter="url(#bn-bl)"/><use href="#bn" x="534" y="273" width="252" height="315" transform="rotate(-14 660 430)"/><use href="#bn" x="340" y="528" width="180" height="225" transform="rotate(52 430 640)"/><use href="#bn" x="50" y="465" width="120" height="150" transform="rotate(12 110 540)" filter="url(#bn-bl)"/><use href="#bn" x="662" y="683" width="156" height="195" transform="rotate(70 740 780)"/><use href="#bn" x="142" y="50" width="96" height="120" transform="rotate(-62 190 110)" filter="url(#bn-bl)"/><use href="#bn" x="10" y="698" width="180" height="225" transform="rotate(-24 100 810)"/><use href="#bn" x="429" y="337" width="102" height="127" transform="rotate(95 480 400)" filter="url(#bn-bl)"/><use href="#bn" x="246" y="713" width="108" height="135" transform="rotate(140 300 780)" filter="url(#bn-bl)"/><use href="#bn" x="-42" y="210" width="144" height="180" transform="rotate(30 30 300)" filter="url(#bn-bl)"/><use href="#bn" x="716" y="233" width="108" height="135" transform="rotate(-80 770 300)" filter="url(#bn-bl)"/></svg>
+      <div class="login-copy">
+        <span class="eyebrow">GESTÃO RURAL</span>
+        <h1>Controle a operação<br>sem perder o campo de vista.</h1>
+        <p>Gestão<br><strong>Café e gado</strong></p>
+      </div>
+      <div class="harvest-note"><span>Gestão</span><strong>Café e gado no mesmo painel: lançamentos, estoque e pesagens.</strong></div>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="auth-switch" data-mode="login">
+          <button id="showLoginBtn" class="switch-btn active" type="button">Entrar</button>
+          <button id="showRegisterBtn" class="switch-btn" type="button">Registrar</button>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <span class="eyebrow dark">ACESSO DO GRUPO</span>
+          <h2>Bem-vindo</h2>
+          <p class="muted">Informe o Código do Grupo, seu usuário e senha.</p>
+          <label>Código do Grupo<input id="loginGroup" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" placeholder="Ex.: 1001" required /></label>
+          <label>Usuário<input id="loginUser" autocomplete="username" required /></label>
+          <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" required /></label>
+          <button class="btn primary full" type="submit">Entrar no sistema</button>
+          <button class="auth-link" id="forgotPasswordBtn" type="button">Esqueci minha senha</button>
+          <p class="security-note" id="cloudStatusNote">Os dados deste grupo são sincronizados pelo servidor.</p>
+        </form>
+
+        <form id="forgotForm" class="auth-form hidden">
+          <span class="eyebrow dark">RECUPERAR SENHA</span>
+          <h2>Receber código</h2>
+          <p class="muted">Informe os dados da sua conta. Enviaremos um código de 6 dígitos para o e-mail cadastrado.</p>
+          <label>Código do Grupo<input id="forgotGroup" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" placeholder="Ex.: 1001" required /></label>
+          <label>Usuário<input id="forgotUser" autocomplete="username" required /></label>
+          <label>E-mail<input id="forgotEmail" type="email" autocomplete="email" required /></label>
+          <button class="btn primary full" type="submit">Enviar código</button>
+          <button class="auth-link back-login" type="button">Voltar para entrar</button>
+        </form>
+
+        <form id="resetForm" class="auth-form hidden">
+          <span class="eyebrow dark">NOVO ACESSO</span>
+          <h2>Trocar senha</h2>
+          <p class="muted" id="resetEmailNote">Digite o código recebido por e-mail e escolha uma nova senha.</p>
+          <label>Código de 6 dígitos<input id="resetCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required /></label>
+          <label>Nova senha<input id="resetPassword" type="password" minlength="8" autocomplete="new-password" required /></label>
+          <label>Confirmar nova senha<input id="resetPasswordConfirm" type="password" minlength="8" autocomplete="new-password" required /></label>
+          <button class="btn primary full" type="submit">Alterar senha</button>
+          <button class="auth-link back-login" type="button">Cancelar e voltar</button>
+        </form>
+
+        <form id="registerForm" class="auth-form hidden">
+          <span class="eyebrow dark">SOLICITAÇÃO DE CADASTRO</span>
+          <h2>Registrar</h2>
+          <p class="muted">Envie seu pedido ao CEO do seu Grupo.</p>
+          <label>Código do Grupo<input name="groupCode" id="registerGroup" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" placeholder="Ex.: 1001" required></label>
+          <div class="form-grid compact-grid">
+            <label>Nome<input name="name" required></label>
+            <label>E-mail<input name="email" type="email" autocomplete="email" required></label>
+            <label id="registerFunctionWrap">Função<select name="function" id="registerFunction" required><option value="">Selecione</option><option value="Tratorista">Tratorista</option><option value="Campo">Campo</option></select></label>
+            <label>Chave PIX (opcional)<input name="pixKey"></label>
+            <label>Perfil desejado<select name="role" id="registerRole"><option value="contribuinte">Contribuinte</option><option value="adm">Administrador</option></select></label>
+            <label>Usuário<input name="username" required></label>
+            <label>Senha<input name="password" type="password" minlength="6" required></label>
+          </div>
+          <button class="btn primary full" type="submit">Enviar solicitação</button>
+          <p class="security-note">Após o envio, o cadastro ficará pendente até o CEO aceitar.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-mark small">GR</div>
+        <div><strong id="groupBrandName">Gestão Rural</strong><span id="groupBrandSub">Gestão de Fazendas</span></div>
+      </div>
+      <nav id="navMenu"></nav>
+      <div class="sidebar-footer">
+        <div class="user-chip"><div id="userAvatar" class="avatar">U</div><div><strong id="userName">Usuário</strong><span id="userRole">Perfil</span></div></div>
+        <button id="logoutBtn" class="btn ghost full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <span id="pageEyebrow" class="eyebrow dark">PAINEL</span>
+          <h1 id="pageTitle">Visão geral</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="farm-switcher"><span>Fazenda ativa</span><select id="farmSelect"></select></label>
+          <button id="logoutTop" class="btn" type="button" aria-label="Sair"></button>
+          <div id="quoteMini" class="quote-mini hidden"><span><i class="live-dot"></i>Café C • saca 60 kg</span><strong id="quoteMiniValue">—</strong></div>
+        </div>
+      </header>
+      <div id="pageContent" class="page-content"></div>
+    </main>
+  </section>
+
+  <script src="app.js"></script>
+  <script src="fx.js"></script>
+</body>
+</html>
